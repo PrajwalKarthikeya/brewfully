@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brewfully — coffee ratios & timers</title>
+<meta name="description" content="A gentle guide to perfect pour over, french press, and aeropress coffee." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #faf6ef;
+    --card: #ffffff;
+    --ink: #2e2620;
+    --ink-soft: #8a7a6d;
+    --line: #e9e0d3;
+    --coffee: #6f4e37;
+    --coffee-deep: #4a3324;
+    --cream: #f3ead9;
+    --accent: #b0764f;
+    --good: #5e7d4f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Karla', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 80px; }
+
+  header { text-align: center; padding: 64px 0 40px; }
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 2.6rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--coffee-deep);
+  }
+  .logo span { font-style: italic; color: var(--accent); }
+  .tagline {
+    color: var(--ink-soft);
+    margin-top: 8px;
+    font-size: 1.05rem;
+  }
+  .divider {
+    width: 48px; height: 2px; background: var(--accent);
+    margin: 24px auto 0; border-radius: 2px; opacity: .6;
+  }
+
+  /* ---- Step 1: method ---- */
+  .step-label {
+    font-family: 'Fraunces', serif; font-size: .85rem;
+    text-transform: uppercase; letter-spacing: .18em;
+    color: var(--ink-soft); text-align: center; margin-bottom: 18px;
+  }
+  .methods {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin-bottom: 40px;
+  }
+  .method {
+    background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 16px; padding: 20px 12px; cursor: pointer;
+    text-align: center; transition: all .2s ease;
+  }
+  .method:hover { transform: translateY(-2px); border-color: var(--coffee); }
+  .method.selected {
+    border-color: var(--coffee); background: var(--cream);
+    box-shadow: 0 4px 16px rgba(111,78,55,.10);
+  }
+  .method .emoji { font-size: 1.7rem; display: block; margin-bottom: 8px; }
+  .method .name { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 600; }
+  .method .ratio { font-size: .8rem; color: var(--ink-soft); margin-top: 3px; }
+
+  /* ---- Step 2: inputs ---- */
+  .card {
+    background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 20px; padding: 28px; margin-bottom: 24px;
+  }
+  .input-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 140px; }
+  .field label {
+    display: block; font-size: .85rem; color: var(--ink-soft);
+    margin-bottom: 8px; font-weight: 500;
+  }
+  .field input, .field select {
+    width: 100%; padding: 12px 14px; font-size: 1.05rem;
+    font-family: 'Karla', sans-serif; color: var(--ink);
+    background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: 12px; outline: none; transition: border-color .2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--coffee); }
+  .mode-toggle {
+    display: inline-flex; background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: 12px; overflow: hidden; margin-bottom: 18px;
+  }
+  .mode-toggle button {
+    border: none; background: transparent; padding: 9px 20px;
+    font-family: 'Karla', sans-serif; font-size: .9rem; cursor: pointer;
+    color: var(--ink-soft); transition: all .2s;
+  }
+  .mode-toggle button.active { background: var(--coffee); color: var(--cream); }
+
+  /* ---- Recipe summary ---- */
+  #recipe { display: none; }
+  .summary {
+    display: flex; justify-content: space-around; flex-wrap: wrap;
+    gap: 16px; text-align: center; padding: 8px 0 4px;
+  }
+  .stat .num {
+    font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 600;
+    color: var(--coffee-deep);
+  }
+  .stat .unit { font-size: .85rem; color: var(--ink-soft); margin-top: 2px; }
+
+  .btn {
+    display: block; width: 100%; padding: 16px; margin-top: 20px;
+    background: var(--coffee); color: var(--cream);
+    border: none; border-radius: 14px; cursor: pointer;
+    font-family: 'Fraunces', serif; font-size: 1.15rem; font-weight: 600;
+    transition: background .2s, transform .15s;
+  }
+  .btn:hover { background: var(--coffee-deep); transform: translateY(-1px); }
+
+  /* ---- Brewer / timer ---- */
+  #brewer { display: none; }
+  .ring-wrap { position: relative; width: 240px; height: 240px; margin: 12px auto 8px; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--line); stroke-width: 8; }
+  .ring-fg {
+    fill: none; stroke: var(--coffee); stroke-width: 8;
+    stroke-linecap: round; transition: stroke-dashoffset .95s linear, stroke .3s;
+  }
+  .ring-text {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+  }
+  .ring-text .time {
+    font-family: 'Fraunces', serif; font-size: 3rem; font-weight: 600;
+    color: var(--coffee-deep); font-variant-numeric: tabular-nums;
+  }
+  .ring-text .phase-label {
+    font-size: .8rem; text-transform: uppercase; letter-spacing: .15em;
+    color: var(--ink-soft); margin-top: 2px;
+  }
+
+  .instruction {
+    text-align: center; margin: 18px 0 6px;
+  }
+  .instruction .action {
+    font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 600;
+    color: var(--ink);
+  }
+  .instruction .detail { color: var(--ink-soft); margin-top: 6px; font-size: 1rem; }
+
+  .pour-amount {
+    text-align: center; margin: 14px 0;
+  }
+  .pour-amount .big {
+    font-family: 'Fraunces', serif; font-size: 1.6rem; color: var(--accent); font-weight: 600;
+  }
+
+  .brewer-btns { display: flex; gap: 10px; margin-top: 20px; }
+  .brewer-btns .btn { margin-top: 0; font-size: 1rem; padding: 13px; }
+  .btn.secondary { background: transparent; color: var(--coffee); border: 1.5px solid var(--coffee); }
+  .btn.secondary:hover { background: var(--cream); }
+
+  .steps-list { list-style: none; margin-top: 26px; }
+  .steps-list li {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 11px 6px; border-bottom: 1px dashed var(--line);
+    font-size: .95rem; color: var(--ink-soft);
+  }
+  .steps-list li .t { font-variant-numeric: tabular-nums; }
+  .steps-list li.active {
+    color: var(--ink); font-weight: 700;
+  }
+  .steps-list li.done { color: var(--good); text-decoration: line-through; opacity: .65; }
+  .steps-list li.active .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); margin-right: 8px; vertical-align: 1px;
+  }
+
+  .done-msg {
+    display: none; text-align: center; padding: 18px;
+    background: #eef3ea; border-radius: 14px; margin-top: 20px;
+    font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--good);
+  }
+
+  footer { text-align: center; margin-top: 60px; color: var(--ink-soft); font-size: .85rem; }
+  footer .steam { letter-spacing: .4em; color: var(--line); }
+
+  @media (max-width: 560px) {
+    .methods { grid-template-columns: 1fr; }
+    .logo { font-size: 2.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">Brew<span>fully</span></div>
+    <p class="tagline">A quiet companion for your morning cup.</p>
+    <div class="divider"></div>
+  </header>
+
+  <!-- STEP 1 -->
+  <p class="step-label">How are you brewing today?</p>
+  <div class="methods" id="methods">
+    <div class="method selected" data-method="pourover">
+      <span class="emoji">☕</span><span class="name">Pour Over</span>
+      <div class="ratio">1 : 16 · 3 min</div>
+    </div>
+    <div class="method" data-method="frenchpress">
+      <span class="emoji">🫖</span><span class="name">French Press</span>
+      <div class="ratio">1 : 15 · 4 min</div>
+    </div>
+    <div class="method" data-method="aeropress">
+      <span class="emoji">🧪</span><span class="name">Aeropress</span>
+      <div class="ratio">1 : 13 · 2 min</div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <div class="mode-toggle">
+      <button id="modeCoffee" class="active">By coffee (g)</button>
+      <button id="modeCups">By cups</button>
+    </div>
+    <div class="input-row">
+      <div class="field" id="coffeeField">
+        <label for="coffeeInput">Coffee grounds</label>
+        <input type="number" id="coffeeInput" value="22" min="1" max="200" step="0.5" inputmode="decimal">
+      </div>
+      <div class="field" id="cupsField" style="display:none">
+        <label for="cupsInput">Cups</label>
+        <input type="number" id="cupsInput" value="2" min="1" max="10" step="1" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="strength">Strength</label>
+        <select id="strength">
+          <option value="0.9">Gentle</option>
+          <option value="1" selected>Classic</option>
+          <option value="1.12">Bold</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="recipe">
+      <hr style="border:none;border-top:1.5px dashed var(--line);margin:22px 0">
+      <div class="summary">
+        <div class="stat"><div class="num" id="sumCoffee">22g</div><div class="unit">coffee</div></div>
+        <div class="stat"><div class="num" id="sumWater">352g</div><div class="unit">water</div></div>
+        <div class="stat"><div class="num" id="sumRatio">1:16</div><div class="unit">ratio</div></div>
+        <div class="stat"><div class="num" id="sumTime">3:00</div><div class="unit">total time</div></div>
+      </div>
+      <button class="btn" id="startBtn">Begin brewing →</button>
+    </div>
+  </div>
+
+  <!-- BREWER -->
+  <div class="card" id="brewer">
+    <p class="step-label" id="brewerTitle">Pour Over</p>
+    <div class="ring-wrap">
+      <svg width="240" height="240" viewBox="0 0 240 240">
+        <circle class="ring-bg" cx="120" cy="120" r="106"></circle>
+        <circle class="ring-fg" id="ringFg" cx="120" cy="120" r="106"></circle>
+      </svg>
+      <div class="ring-text">
+        <div class="time" id="timeText">0:45</div>
+        <div class="phase-label" id="phaseText">bloom</div>
+      </div>
+    </div>
+    <div class="pour-amount" id="pourAmount" style="display:none">
+      <div class="big" id="pourBig">+ 150g water</div>
+      <div style="font-size:.85rem;color:var(--ink-soft)">pour steadily in circles</div>
+    </div>
+    <div class="instruction">
+      <div class="action" id="actionText">Let it bloom</div>
+      <div class="detail" id="detailText">Gently pour 50g of water and let the coffee de-gas.</div>
+    </div>
+    <div class="brewer-btns">
+      <button class="btn" id="pauseBtn">Pause</button>
+      <button class="btn secondary" id="resetBtn">Start over</button>
+    </div>
+    <ul class="steps-list" id="stepsList"></ul>
+    <div class="done-msg" id="doneMsg">✿ Your coffee is ready. Enjoy it slowly.</div>
+  </div>
+
+  <footer>
+    <div class="steam">~~~</div>
+    <p>Brewfully · made with patience</p>
+  </footer>
+</div>
+
+<script>
+// ---------- Brew profiles ----------
+const METHODS = {
+  pourover: {
+    name: "Pour Over", emoji: "☕", ratio: 16, bloomRatio: 2.5,
+    cup: 250, // g coffee per cup ≈ water/16
+    steps: c => [
+      { label: "Bloom",   secs: 45, pour: c * 2.5,
+        action: "Let it bloom", detail: "Wet all the grounds gently and watch them bubble." },
+      { label: "First pour",  secs: 30, pour: null, target: 0.6,
+        action: "Pour to 60%", detail: "Slow spirals from the centre outward." },
+      { label: "Rest",    secs: 30, pour: 0,
+        action: "Let it drain", detail: "Wait for the bed to settle a little." },
+      { label: "Second pour", secs: 30, pour: null, target: 1.0,
+        action: "Pour to 100%", detail: "Top it up with slow, even spirals." },
+      { label: "Drawdown", secs: 45, pour: 0,
+        action: "Let it draw down", detail: "A flat, even bed means a good brew." },
+    ],
+    total: 180,
+  },
+  frenchpress: {
+    name: "French Press", emoji: "🫖", ratio: 15, bloomRatio: 2,
+    cup: 266,
+    steps: c => [
+      { label: "Add all water", secs: 30, pour: null, target: 1.0,
+        action: "Pour all the water", detail: "Pour everything in and give it a gentle stir." },
+      { label: "Steep", secs: 210, pour: 0,
+        action: "Steep", detail: "Put the lid on. Don't plunge yet — just wait." },
+      { label: "Skim & plunge", secs: 30, pour: 0,
+        action: "Skim and plunge", detail: "Skim the crust, then press slowly to the bottom." },
+    ],
+    total: 270,
+  },
+  aeropress: {
+    name: "Aeropress", emoji: "🧪", ratio: 13, bloomRatio: 2,
+    cup: 230,
+    steps: c => [
+      { label: "Bloom", secs: 20, pour: c * 2,
+        action: "Let it bloom", detail: "Quick bloom — just enough to wet the grounds." },
+      { label: "Fill", secs: 20, pour: null, target: 1.0,
+        action: "Fill the chamber", detail: "Pour to the top and give a gentle stir." },
+      { label: "Steep", secs: 70, pour: 0,
+        action: "Steep", detail: "Cap it and let it sit." },
+      { label: "Press", secs: 30, pour: 0,
+        action: "Press slowly", detail: "About 30 seconds of gentle, steady pressure." },
+    ],
+    total: 140,
+  },
+};
+
+// ---------- State ----------
+let method = "pourover";
+let mode = "coffee";
+let timer = null, remaining = 0, stepIdx = 0, paused = false, steps = [], totalWater = 0;
+const CIRC = 2 * Math.PI * 106;
+const ring = document.getElementById("ringFg");
+ring.style.strokeDasharray = CIRC;
+
+const $ = id => document.getElementById(id);
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+// ---------- Recipe ----------
+function coffeeAmount() {
+  const m = METHODS[method];
+  if (mode === "coffee") return parseFloat($("coffeeInput").value) || 15;
+  const cups = parseFloat($("cupsInput").value) || 1;
+  return Math.round(cups * m.cup / m.ratio * 10) / 10; // grams for one cup of water/ratio
+}
+
+function updateRecipe() {
+  const m = METHODS[method];
+  const coffee = coffeeAmount();
+  const strength = parseFloat($("strength").value);
+  const water = Math.round(coffee * m.ratio / strength);
+  const effRatio = (water / coffee).toFixed(1);
+
+  $("sumCoffee").textContent = coffee + "g";
+  $("sumWater").textContent = water + "g";
+  $("sumRatio").textContent = "1:" + effRatio;
+  $("sumTime").textContent = fmt(m.total);
+  $("recipe").style.display = "block";
+}
+
+// ---------- Method & mode selection ----------
+document.querySelectorAll(".method").forEach(el => {
+  el.addEventListener("click", () => {
+    document.querySelectorAll(".method").forEach(e => e.classList.remove("selected"));
+    el.classList.add("selected");
+    method = el.dataset.method;
+    updateRecipe();
+  });
+});
+$("modeCoffee").onclick = () => setMode("coffee");
+$("modeCups").onclick = () => setMode("cups");
+function setMode(m) {
+  mode = m;
+  $("modeCoffee").classList.toggle("active", m === "coffee");
+  $("modeCups").classList.toggle("active", m === "cups");
+  $("coffeeField").style.display = m === "coffee" ? "" : "none";
+  $("cupsField").style.display = m === "cups" ? "" : "none";
+  updateRecipe();
+}
+["coffeeInput", "cupsInput", "strength"].forEach(id =>
+  $(id).addEventListener("input", updateRecipe));
+
+// ---------- Brewer ----------
+function buildSteps() {
+  const m = METHODS[method];
+  const coffee = coffeeAmount();
+  const strength = parseFloat($("strength").value);
+  totalWater = Math.round(coffee * m.ratio / strength);
+  const raw = m.steps(coffee);
+  let prevTarget = 0;
+  return raw.map(s => {
+    let pourG;
+    if (s.target != null) {
+      const tgt = Math.round(totalWater * s.target);
+      pourG = tgt - Math.round(prevTarget);
+      prevTarget = tgt;
+    } else if (s.pour) {
+      pourG = Math.round(s.pour / strength);
+      prevTarget += pourG;
+    } else pourG = 0;
+    return { ...s, pourG };
+  });
+}
+
+function renderStepList() {
+  const ul = $("stepsList");
+  ul.innerHTML = "";
+  steps.forEach((s, i) => {
+    const li = document.createElement("li");
+    li.className = i === stepIdx ? "active" : i < stepIdx ? "done" : "";
+    const mark = i === stepIdx ? '<span class="dot"></span>' : "";
+    const pour = s.pourG > 0 ? ` (+${s.pourG}g)` : "";
+    li.innerHTML = `<span>${mark}${s.label}${pour}</span><span class="t">${fmt(s.secs)}</span>`;
+    ul.appendChild(li);
+  });
+}
+
+function showStep() {
+  const s = steps[stepIdx];
+  $("timeText").textContent = fmt(remaining);
+  $("phaseText").textContent = s.label.toLowerCase();
+  $("actionText").textContent = s.action;
+  $("detailText").textContent = s.detail;
+  if (s.pourG > 0) {
+    $("pourAmount").style.display = "";
+    $("pourBig").textContent = `+ ${s.pourG}g water`;
+  } else {
+    $("pourAmount").style.display = "none";
+  }
+  ring.style.strokeDashoffset = CIRC * (1 - remaining / s.secs);
+  ring.style.stroke = remaining <= 10 && remaining > 0 ? "var(--accent)" : "var(--coffee)";
+  renderStepList();
+}
+
+function tick() {
+  if (paused) return;
+  remaining--;
+  if (remaining <= 0) {
+    stepIdx++;
+    if (stepIdx >= steps.length) { finish(); return; }
+    remaining = steps[stepIdx].secs;
+  }
+  showStep();
+}
+
+function finish() {
+  clearInterval(timer); timer = null;
+  $("timeText").textContent = "✓";
+  $("phaseText").textContent = "done";
+  $("actionText").textContent = "Your cup awaits";
+  $("detailText").textContent = "Pour, sit back, take the first sip.";
+  $("pourAmount").style.display = "none";
+  ring.style.strokeDashoffset = 0;
+  ring.style.stroke = "var(--good)";
+  stepIdx = steps.length;
+  renderStepList();
+  $("doneMsg").style.display = "block";
+  $("pauseBtn").textContent = "Pause";
+  if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+}
+
+$("startBtn").onclick = () => {
+  steps = buildSteps();
+  stepIdx = 0; remaining = steps[0].secs; paused = false;
+  $("brewer").style.display = "block";
+  $("doneMsg").style.display = "none";
+  $("pauseBtn").textContent = "Pause";
+  $("brewerTitle").textContent = `${METHODS[method].emoji} ${METHODS[method].name}`;
+  if (timer) clearInterval(timer);
+  timer = setInterval(tick, 1000);
+  showStep();
+  $("brewer").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+$("pauseBtn").onclick = () => {
+  paused = !paused;
+  $("pauseBtn").textContent = paused ? "Resume" : "Pause";
+};
+$("resetBtn").onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; }
+  $("brewer").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+updateRecipe();
+</script>
+</body>
+</html>
