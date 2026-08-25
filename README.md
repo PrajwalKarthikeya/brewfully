@@ -1,6 +1,6 @@
 # ☕ Brewfully
 
-A calm, minimal coffee brew guide. Pick your method (Pour Over, French Press, Aeropress), enter your coffee weight or cup count, and Brewfully calculates the water, ratio, and walks you through each phase with a step-by-step countdown timer — blooming, pouring, steeping, plunging.
+A calm, minimal coffee brew guide. Pick your method (Pour Over, French Press, Aeropress), enter your coffee weight or cup count, and Brewfully calculates the water, ratio, and walks you through each phase with a step-by-step countdown timer. Blooming, pouring, steeping, plunging.
 
 **No build step. No dependencies.** One `index.html` file.
 
